@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test two</title>
+</head>
+<center>
+	<div id="base">
+		<button onclick="call();">call</button>
+		<br>
+		<button onclick="notCall()">awnser</button>
+	</div>
+	<div id="call" hidden>
+		<h3>call</h3>
+		<p id="callStirng"></p>
+		<input type="text" id="callInput">
+		<br>
+		<button id="callTwo">connect</button>
+	</div>
+	<div id="notCall" hidden>
+		<h3>awnser</h3>
+		<p id="notCallStirng"></p>
+		<input type="text" id="notCallInput">
+		<br>
+		<button id="notCallTwo">send to friend</button>
+		<br>
+		<video controls autoplay id="vid"></video>
+	</div>
+</center>
+<body>
+<script type="text/javascript">
+
+	call = async ()=>{
+		let obj = {};
+
+		document.getElementById(`base`).setAttribute(`hidden`, true);
+		document.getElementById(`call`).removeAttribute(`hidden`);
+
+		let localConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
+		let sendChannel = localConnection.createDataChannel('sendDataChannel');
+
+		const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+		stream.getTracks().forEach(track => localConnection.addTrack(track, stream));
+		console.log('Added local stream to localConnection');
+
+		localConnection.createOffer().then((offer)=>{
+			localConnection.setLocalDescription(offer);
+			obj.data = offer;
+		})
+
+		localConnection.onicecandidate = (event)=> {
+			if(event.candidate){
+				obj.ice = event.candidate;
+				document.getElementById(`callStirng`).innerHTML = JSON.stringify(obj);
+			}
+		};
+
+		//call part two
+		document.getElementById(`callTwo`).addEventListener(`click`, ()=>{
+			let otherObj = JSON.parse(document.getElementById(`callInput`).value);
+
+			localConnection.setRemoteDescription(otherObj.data);
+			localConnection.addIceCandidate(otherObj.ice);
+
+			sendChannel.onopen = ()=>{
+				sendChannel.send(`TEST ONE`);
+			}
+
+		});
+	}
+
+	let notCall = ()=>{
+		document.getElementById(`base`).setAttribute(`hidden`, true);
+		document.getElementById(`notCall`).removeAttribute(`hidden`);
+
+		//notCall part two
+		document.getElementById(`notCallTwo`).addEventListener(`click`, ()=>{
+			let otherObj = JSON.parse(document.getElementById(`notCallInput`).value);
+			let obj = {};
+
+			let remoteConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
+
+			remoteConnection.setRemoteDescription(otherObj.data);
+			remoteConnection.addIceCandidate(otherObj.ice);
+			remoteConnection.createAnswer().then((awnser)=>{
+				remoteConnection.setLocalDescription(awnser);
+				obj.data = awnser;
+			});
+
+			remoteConnection.onicecandidate = (event)=> {
+				if(event.candidate){
+					obj.ice = event.candidate;
+					document.getElementById(`notCallStirng`).innerHTML = JSON.stringify(obj);
+				}
+			};
+
+			remoteConnection.ondatachannel = (event)=>{
+				console.log('Receive Channel Callback');
+				receiveChannel = event.channel;
+				receiveChannel.onmessage = (eventTwo)=>{
+					console.log('Received Message');
+					console.log(eventTwo.data);
+				};
+			}
+
+			let inboundStream = null;
+			remoteConnection.ontrack = ev => {
+				videoElem = document.getElementById(`vid`);
+
+				if (ev.streams && ev.streams[0]) {
+					videoElem.srcObject = ev.streams[0];
+				} else {
+				if (!inboundStream) {
+					inboundStream = new MediaStream();
+					videoElem.srcObject = inboundStream;
+				}
+					inboundStream.addTrack(ev.track);
+				}
+			}
+
+		});
+	}
+
+</script>
+</body>
+</html>

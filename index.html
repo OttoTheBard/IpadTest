@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>thing</title>
+</head>
+<body>
+<script type="text/javascript">
+	
+	let defaultIceServers = RTCPeerConnection.defaultIceServers;
+
+	let localConnection;
+	window.localConnection = localConnection = new RTCPeerConnection(defaultIceServers);
+	sendChannel = localConnection.createDataChannel('sendDataChannel');
+
+	let remoteConnection;
+	window.remoteConnection = remoteConnection = new RTCPeerConnection(defaultIceServers);
+
+	localConnection.createOffer().then((offer)=>{
+		localConnection.setLocalDescription(offer);
+		remoteConnection.setRemoteDescription(offer);
+
+		remoteConnection.createAnswer().then((awnser)=>{
+			remoteConnection.setLocalDescription(awnser);
+			localConnection.setRemoteDescription(awnser);
+		});
+	});
+
+	localConnection.onicecandidate = (event)=> {
+		if(event.candidate){
+			remoteConnection.addIceCandidate(event.candidate)
+		}
+	};
+
+	remoteConnection.onicecandidate = (event)=> {
+		if(event.candidate){
+			localConnection.addIceCandidate(event.candidate)
+		}
+	};
+
+	sendChannel.onopen = ()=>{
+		sendChannel.send(`TEST ONE`);
+	}
+
+	//FIX
+
+	remoteConnection.ondatachannel = receiveChannelCallback;
+
+	function receiveChannelCallback(event) {
+		console.log('Receive Channel Callback');
+		receiveChannel = event.channel;
+		receiveChannel.onmessage = onReceiveMessageCallback;
+	}
+
+	function onReceiveMessageCallback(event) {
+		console.log('Received Message');
+		console.log(event.data);
+	}
+
+</script>
+</body>
+</html>
