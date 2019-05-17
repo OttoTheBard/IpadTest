@@ -19,10 +19,6 @@
 			font-size: 10em;
 		}
 
-		#next{
-
-		}
-
 		#cpyBtn{
 			font-size: 10em;
 			width: 99vw;
@@ -44,11 +40,16 @@
 			background-color: purple;
 		}
 
+		#lastExtra{
+			width: 100vw;
+			height: 100vh;
+		}
+
 	</style>
 </head>
 <body>
 	<div id="last" hidden>
-		<center>
+		<center id="changeSoon">
 			<video controls autoplay id="vidTag"></video>
 		</center>
 	</div>
@@ -105,6 +106,7 @@
 					// console.log(otherObj);
 					rtcConnection.setRemoteDescription(otherObj.data);
 					rtcConnection.addIceCandidate(otherObj.ice);
+					document.getElementById(`changeSoon`).setAttribute(`id`, `lastExtra`);
 				}
 			})
 		}
@@ -133,6 +135,7 @@
 							document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
 							
 							document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
+								document.getElementById(`changeSoon`).setAttribute(`id`, `lastExtra`);
 								navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
 							});
 						}
@@ -140,7 +143,6 @@
 				}
 			});
 
-			// console.log(`kk`);
 		}
 
 		let inboundStream = null;
@@ -159,72 +161,6 @@
 					inboundStream.addTrack(ev.track);
 				}
 			}
-
-		/*----------  --------------------------------------------------------------  ----------*/
-		
-
-		// let rtcConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
-		// let dataChannel = rtcConnection.createDataChannel('dataChannel');
-		// let obj = {};
-
-		// async function call(){
-		// 	// let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-		// 	// stream.getTracks().forEach(track => rtcConnection.addTrack(track, stream));
-
-		// 	document.getElementById('start').setAttribute(`hidden`, true);
-		// 	rtcConnection.createOffer().then((offer)=>{
-		// 		rtcConnection.setLocalDescription(offer);
-		// 		obj.data = offer;
-		// 	});
-
-		// 	rtcConnection.onicecandidate = (event)=>{
-		// 		if(event.candidate){
-		// 			obj.ice = event.candidate;
-		// 			document.getElementById(`next`).removeAttribute(`hidden`);
-		// 			document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
-		// 			document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
-		// 				navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
-		// 			})
-		// 			document.getElementById('connectBtn').addEventListener(`click`, ()=>{
-		// 				let otherObj = document.getElementById('otherObj').value;
-		// 				if(otherObj != ``){
-		// 					rtcConnection.setRemoteDescription(JSON.parse(otherObj).data);
-		// 					rtcConnection.addIceCandidate(JSON.parse(otherObj).ice);
-		// 				}
-		// 			})
-		// 		}
-		// 	};
-		// }
-
-		// async function awnser() {
-		// 	// let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-		// 	// stream.getTracks().forEach(track => rtcConnection.addTrack(track, stream));
-
-		// 	document.getElementById('start').setAttribute(`hidden`, true);
-		// 	document.getElementById(`next`).removeAttribute(`hidden`);
-		// 	document.getElementById('connectBtn').addEventListener(`click`, ()=>{
-		// 	let otherObj = document.getElementById('otherObj').value;
-		// 		if(otherObj != ``){
-		// 			rtcConnection.setRemoteDescription(JSON.parse(otherObj).data);
-		// 			rtcConnection.addIceCandidate(JSON.parse(otherObj).ice);
-
-		// 			rtcConnection.createAnswer().then((awnser)=>{
-		// 				rtcConnection.setLocalDescription(awnser);
-		// 				obj.data = awnser;
-		// 			});
-
-		// 			rtcConnection.onicecandidate = (event)=>{
-		// 				if(event.candidate){
-		// 					obj.ice = event.candidate;
-		// 					document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
-		// 					document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
-		// 						navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
-		// 					})
-		// 				}
-		// 			}
-		// 		}
-		// 	});
-		// }
 
 	</script>
 </body>
