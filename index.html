@@ -1,170 +1,154 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>test Three</title>
-</head>
-<center>
-	<div id="base">
-		<button onclick="call();">call</button>
-		<br>
-		<button onclick="notCall()">awnser</button>
-	</div>
-	<div id="call" hidden>
-		<h3>call</h3>
-		<p id="callStirng"></p>
-		<input type="text" id="callInput">
-		<br>
-		<button id="callTwo">connect</button>
-		<br>
-		<video controls autoplay id="callVid"></video>
-		<br>
-		<input type="text" id="callInputChat">
-		<br>
-		<button id="callSendChat">send</button>
-		<ul id="callchat">
-			
-		</ul>
-	</div>
-	<div id="notCall" hidden>
-		<h3>awnser</h3>
-		<p id="notCallStirng"></p>
-		<input type="text" id="notCallInput">
-		<br>
-		<button id="notCallTwo">send to friend</button>
-		<br>
-		<video controls autoplay id="notCallVid"></video>
-		<br>
-		<input type="text" id="notCallInputChat">
-		<br>
-		<button id="notCallSendChat">send</button>
-		<ul id="notCallchat">
-			
-		</ul>
-	</div>
-</center>
-<body>
-<script type="text/javascript">
+	<title>⚒️</title>
+	<style type="text/css">
+		#callBtn{
+			width: 99vw;
+			height: 49vh;
+			background-color: green;
+			font-size: 10em;
+			padding: 0px;
+			margin: 0px;
+			border: 0px;
+		}
+		#awnserBtn{
+			width: 99vw;
+			height: 49vh;
+			background-color: blue;
+			font-size: 10em;
+		}
 
-	call = async ()=>{
+		#next{
+
+		}
+
+		#cpyBtn{
+			font-size: 10em;
+			width: 99vw;
+			height: 49vh;
+			background-color: yellow;
+		}
+
+		#otherObj{
+			font-size: 5em;
+			width: 78vw;
+			height: 19vh;
+
+		}
+
+		#connectBtn{
+			font-size: 5em;
+			width: 19vw;
+			height: 19vh;
+			background-color: purple;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="last" hidden>
+		<center>
+			<video controls autoplay id="vidTag"></video>
+		</center>
+	</div>
+	<div id="start">
+		<center>
+			<button id="callBtn" onclick="call()">call</button>
+			<br>
+			<button id="awnserBtn" onclick="awnser()">awnser</button>
+		</center>
+	</div>
+	<div id="next" hidden>
+		<center>
+			<button id="cpyBtn">copy</button>
+			<input type="text" id="otherObj">
+			<button id="connectBtn">go</button>
+			<br>
+			<br>
+			<p id="obj"></p>
+		</center>
+	</div>
+	<script type="text/javascript">
+		
+		let rtcConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
+		let sendChannel = rtcConnection.createDataChannel('sendDataChannel');
+		(async()=>{
+			let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+			stream.getTracks().forEach(track => rtcConnection.addTrack(track, stream));
+		})();
 		let obj = {};
 
-		document.getElementById(`base`).setAttribute(`hidden`, true);
-		document.getElementById(`call`).removeAttribute(`hidden`);
+		function call(){
+			document.getElementById('start').setAttribute(`hidden`, true);
+			document.getElementById(`next`).removeAttribute(`hidden`);
 
-		let localConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
-		let sendChannel = localConnection.createDataChannel('sendDataChannel');
-
-		let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-		stream.getTracks().forEach(track => localConnection.addTrack(track, stream));
-
-		localConnection.createOffer().then((offer)=>{
-			localConnection.setLocalDescription(offer);
-			obj.data = offer;
-		})
-
-		localConnection.onicecandidate = (event)=> {
-			if(event.candidate){
-				obj.ice = event.candidate;
-				document.getElementById(`callStirng`).innerHTML = JSON.stringify(obj);
-			}
-		};
-
-		//call part two
-		document.getElementById(`callTwo`).addEventListener(`click`, ()=>{
-			let otherObj = JSON.parse(document.getElementById(`callInput`).value);
-
-			localConnection.setRemoteDescription(otherObj.data);
-			localConnection.addIceCandidate(otherObj.ice);
-
-			localConnection.ondatachannel = (event)=>{
-				console.log('Receive Channel Callback');
-				receiveChannel = event.channel;
-				receiveChannel.onmessage = (eventTwo)=>{
-					console.log('Received Message');
-					console.log(eventTwo.data);
-					let tempNode = document.createElement(`ul`)
-					tempNode.innerHTML = eventTwo.data;
-					document.getElementById(`callchat`).insertBefore(tempNode, document.getElementById(`callchat`).childNodes[0]);
-				};
-			}
-
-			sendChannel.onopen = ()=>{
-				// sendChannel.send(`TEST ONE`);
-				document.getElementById(`callSendChat`).addEventListener(`click`, ()=>{
-					sendChannel.send(document.getElementById(`callInputChat`).value);
-				})
-			}
-
-			let inboundStream = null;
-			localConnection.ontrack = ev => {
-				videoElem = document.getElementById(`callVid`);
-
-				if (ev.streams && ev.streams[0]) {
-					videoElem.srcObject = ev.streams[0];
-				} else {
-				if (!inboundStream) {
-					inboundStream = new MediaStream();
-					videoElem.srcObject = inboundStream;
-				}
-					inboundStream.addTrack(ev.track);
-				}
-			}
-
-		});
-	}
-
-	let notCall = ()=>{
-		document.getElementById(`base`).setAttribute(`hidden`, true);
-		document.getElementById(`notCall`).removeAttribute(`hidden`);
-
-		//notCall part two
-		document.getElementById(`notCallTwo`).addEventListener(`click`, async()=>{
-			let otherObj = JSON.parse(document.getElementById(`notCallInput`).value);
-			let obj = {};
-
-			let remoteConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
-			let sendChannel = remoteConnection.createDataChannel('sendDataChannel');
-
-			let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-			stream.getTracks().forEach(track => remoteConnection.addTrack(track, stream));
-
-			remoteConnection.setRemoteDescription(otherObj.data);
-			remoteConnection.addIceCandidate(otherObj.ice);
-			remoteConnection.createAnswer().then((awnser)=>{
-				remoteConnection.setLocalDescription(awnser);
-				obj.data = awnser;
+			rtcConnection.createOffer().then((offer)=>{
+				rtcConnection.setLocalDescription(offer);
+				obj.data = offer;
 			});
 
-			remoteConnection.onicecandidate = (event)=> {
+			rtcConnection.onicecandidate = (event)=> {
 				if(event.candidate){
 					obj.ice = event.candidate;
-					document.getElementById(`notCallStirng`).innerHTML = JSON.stringify(obj);
+					document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
+					
+					document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
+						navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
+					});
 				}
 			};
 
-			remoteConnection.ondatachannel = (event)=>{
-				console.log('Receive Channel Callback');
-				receiveChannel = event.channel;
-				receiveChannel.onmessage = (eventTwo)=>{
-					console.log('Received Message');
-					console.log(eventTwo.data);
-					let tempNode = document.createElement(`ul`)
-					tempNode.innerHTML = eventTwo.data;
-					document.getElementById(`notCallchat`).insertBefore(tempNode, document.getElementById(`notCallchat`).childNodes[0]);
-				};
-			}
+			document.getElementById('connectBtn').addEventListener(`click`, ()=>{
+				if(document.getElementById('otherObj').value != ``){
+					let otherObj = JSON.parse(document.getElementById('otherObj').value);
+					// console.log(otherObj);
+					rtcConnection.setRemoteDescription(otherObj.data);
+					rtcConnection.addIceCandidate(otherObj.ice);
+				}
+			})
+		}
 
-			sendChannel.onopen = ()=>{
-				// sendChannel.send(`TEST ONE`);
-				document.getElementById(`notCallSendChat`).addEventListener(`click`, ()=>{
-					sendChannel.send(document.getElementById(`notCallInputChat`).value);
-				})
-			}
+		function awnser(){
+			document.getElementById('start').setAttribute(`hidden`, true);
+			document.getElementById(`next`).removeAttribute(`hidden`);
 
-			let inboundStream = null;
-			remoteConnection.ontrack = ev => {
-				videoElem = document.getElementById(`notCallVid`);
+			console.log(`kk`);
 
+			document.getElementById('connectBtn').addEventListener(`click`, ()=>{
+				if(document.getElementById('otherObj').value != ``){
+					
+					let otherObj = JSON.parse(document.getElementById('otherObj').value);
+					rtcConnection.setRemoteDescription(otherObj.data);
+					rtcConnection.addIceCandidate(otherObj.ice);
+
+					rtcConnection.createAnswer().then((awnser)=>{
+						rtcConnection.setLocalDescription(awnser);
+						obj.data = awnser;
+					});
+
+					rtcConnection.onicecandidate = (event)=> {
+						if(event.candidate){
+							obj.ice = event.candidate;
+							document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
+							
+							document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
+								navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
+							});
+						}
+					}
+				}
+			});
+
+			// console.log(`kk`);
+		}
+
+		let inboundStream = null;
+			rtcConnection.ontrack = ev => {
+				// document.getElementById(`next`).setAttribute(`hidden`, true)
+				document.getElementById(`last`).removeAttribute(`hidden`);
+
+				videoElem = document.getElementById(`vidTag`);
 				if (ev.streams && ev.streams[0]) {
 					videoElem.srcObject = ev.streams[0];
 				} else {
@@ -176,9 +160,72 @@
 				}
 			}
 
-		});
-	}
+		/*----------  --------------------------------------------------------------  ----------*/
+		
 
-</script>
+		// let rtcConnection = new RTCPeerConnection(RTCPeerConnection.defaultIceServers);
+		// let dataChannel = rtcConnection.createDataChannel('dataChannel');
+		// let obj = {};
+
+		// async function call(){
+		// 	// let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+		// 	// stream.getTracks().forEach(track => rtcConnection.addTrack(track, stream));
+
+		// 	document.getElementById('start').setAttribute(`hidden`, true);
+		// 	rtcConnection.createOffer().then((offer)=>{
+		// 		rtcConnection.setLocalDescription(offer);
+		// 		obj.data = offer;
+		// 	});
+
+		// 	rtcConnection.onicecandidate = (event)=>{
+		// 		if(event.candidate){
+		// 			obj.ice = event.candidate;
+		// 			document.getElementById(`next`).removeAttribute(`hidden`);
+		// 			document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
+		// 			document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
+		// 				navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
+		// 			})
+		// 			document.getElementById('connectBtn').addEventListener(`click`, ()=>{
+		// 				let otherObj = document.getElementById('otherObj').value;
+		// 				if(otherObj != ``){
+		// 					rtcConnection.setRemoteDescription(JSON.parse(otherObj).data);
+		// 					rtcConnection.addIceCandidate(JSON.parse(otherObj).ice);
+		// 				}
+		// 			})
+		// 		}
+		// 	};
+		// }
+
+		// async function awnser() {
+		// 	// let stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+		// 	// stream.getTracks().forEach(track => rtcConnection.addTrack(track, stream));
+
+		// 	document.getElementById('start').setAttribute(`hidden`, true);
+		// 	document.getElementById(`next`).removeAttribute(`hidden`);
+		// 	document.getElementById('connectBtn').addEventListener(`click`, ()=>{
+		// 	let otherObj = document.getElementById('otherObj').value;
+		// 		if(otherObj != ``){
+		// 			rtcConnection.setRemoteDescription(JSON.parse(otherObj).data);
+		// 			rtcConnection.addIceCandidate(JSON.parse(otherObj).ice);
+
+		// 			rtcConnection.createAnswer().then((awnser)=>{
+		// 				rtcConnection.setLocalDescription(awnser);
+		// 				obj.data = awnser;
+		// 			});
+
+		// 			rtcConnection.onicecandidate = (event)=>{
+		// 				if(event.candidate){
+		// 					obj.ice = event.candidate;
+		// 					document.getElementById(`obj`).innerHTML = JSON.stringify(obj);
+		// 					document.getElementById('cpyBtn').addEventListener(`click`, ()=>{
+		// 						navigator.clipboard.writeText(`${JSON.stringify(obj)}`);
+		// 					})
+		// 				}
+		// 			}
+		// 		}
+		// 	});
+		// }
+
+	</script>
 </body>
 </html>
